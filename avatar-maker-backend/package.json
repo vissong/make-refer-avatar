@@ -1,0 +1,19 @@
+{
+  "name": "avatar-maker-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend proxy service for AI avatar generation",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node src/index.js",
+    "start": "node src/index.js",
+    "start:debug": "node src/index.js --log-level=debug",
+    "start:silent": "node src/index.js --log-level=error",
+    "start:quiet": "node src/index.js --log-level=none"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .image-preview {
+            margin-top: 10px;
+            padding: 10px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-preview img {
+            max-width: 400px;
+            max-height: 400px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .debug-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 后端 API 测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 健康检查</h2>
+        <button onclick="testHealth()">测试 /health</button>
+        <div id="health-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 环境变量检查</h2>
+        <button onclick="checkEnv()">检查环境变量</button>
+        <div id="env-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 图片 Base64 测试</h2>
+        <button onclick="testBase64Image()">测试 Base64 图片显示</button>
+        <div id="base64-result" class="result"></div>
+        <div id="base64-preview" class="image-preview"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. API 生成接口测试</h2>
+        <button onclick="testGenerate()">测试 /api/generate (模拟数据)</button>
+        <div id="generate-result" class="result"></div>
+        <div id="generate-preview" class="image-preview"></div>
+        <div id="generate-debug" class="debug-info" style="display:none;"></div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:3001';
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.textContent = '测试中...';
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/health`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 成功！\n状态码: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 失败！\n错误: ${error.message}`;
+            }
+        }
+
+        function checkEnv() {
+            const resultDiv = document.getElementById('env-result');
+            
+            const info = {
+                'BACKEND_URL': BACKEND_URL,
+                'window.location.origin': window.location.origin,
+                'window.location.href': window.location.href
+            };
+            
+            resultDiv.className = 'result';
+            resultDiv.textContent = JSON.stringify(info, null, 2);
+        }
+
+        function testBase64Image() {
+            const resultDiv = document.getElementById('base64-result');
+            const previewDiv = document.getElementById('base64-preview');
+            
+            // 一个简单的 1x1 红色像素 PNG 图片的 base64
+            const testBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
+            const dataUri = `data:image/png;base64,${testBase64}`;
+            
+            resultDiv.className = 'result success';
+            resultDiv.textContent = '✅ 测试图片 Data URI:\n' + dataUri.substring(0, 100) + '...';
+            
+            previewDiv.innerHTML = `<img src="${dataUri}" alt="Test Image" style="width: 100px; height: 100px; image-rendering: pixelated;">`;
+        }
+
+        async function testGenerate() {
+            const resultDiv = document.getElementById('generate-result');
+            const previewDiv = document.getElementById('generate-preview');
+            const debugDiv = document.getElementById('generate-debug');
+            
+            resultDiv.textContent = '测试中...';
+            previewDiv.innerHTML = '';
+            debugDiv.style.display = 'none';
+            
+            const testData = {
+                modelConfig: {
+                    baseURL: 'https://test.com',
+                    apiToken: 'test-token',
+                    modelName: 'test-model'
+                },
+                generateRequest: {
+                    userImage: 'data:image/png;base64,test',
+                    referenceImage: 'data:image/png;base64,test',
+                    background: {
+                        type: 'color',
+                        color: '#ffffff'
+                    }
+                }
+            };
+            
+            try {
+                const url = `${BACKEND_URL}/api/generate`;
+                console.log('请求 URL:', url);
+                console.log('请求数据:', testData);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                
+                // 显示响应
+                resultDiv.className = 'result';
+                resultDiv.textContent = `状态码: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`;
+                
+                // 如果返回了 imageUrl，尝试显示
+                if (data.imageUrl) {
+                    const imageUrl = data.imageUrl;
+                    
+                    // 显示调试信息
+                    debugDiv.style.display = 'block';
+                    debugDiv.innerHTML = `
+🔍 图片数据分析:
+- 类型: ${imageUrl.startsWith('data:') ? 'Data URI' : imageUrl.startsWith('http') ? 'URL' : '未知'}
+- 长度: ${imageUrl.length}
+- 前100字符: ${imageUrl.substring(0, 100)}
+- 是否有效 Data URI: ${imageUrl.startsWith('data:image/')}
+                    `;
+                    
+                    // 尝试显示图片
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.alt = 'Generated Image';
+                    img.style.maxWidth = '400px';
+                    img.style.maxHeight = '400px';
+                    
+                    img.onerror = () => {
+                        previewDiv.innerHTML = `
+                            <div style="color: red;">
+                                ❌ 图片加载失败<br>
+                                可能原因：<br>
+                                1. 不是有效的 data URI 格式<br>
+                                2. base64 数据损坏<br>
+                                3. 图片格式不支持
+                            </div>
+                        `;
+                    };
+                    
+                    img.onload = () => {
+                        console.log('✅ 图片加载成功！');
+                    };
+                    
+                    previewDiv.appendChild(img);
+                } else {
+                    previewDiv.innerHTML = '<div style="color: gray;">未返回图片数据</div>';
+                }
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ 失败！\n错误: ${error.message}\n堆栈: ${error.stack}`;
+            }
+        }
+
+        // 页面加载时自动检查环境
+        window.addEventListener('load', () => {
+            checkEnv();
+        });
+    </script>
+</body>
+</html>

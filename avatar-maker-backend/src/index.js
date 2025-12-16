@@ -141,6 +141,7 @@ ${background.elements ? `背景元素：${background.elements}` : ''}
 
 要求：
 - 头像的底色为${background.type === 'color' ? `颜色为 ${background.color || '自动选择'}` : '从图 2 主要颜色中提取'}
+- 圆形外部底色为头像底色的同色系，稍浅一些的颜色
 - 圆形内部的背景插画处理，不需要保留墙壁的细节，使用 ${background.elements ? `${background.elements}` : '随机图案'} 生成规律性的插画背景，稀疏分布
 - 人物主体使用图 2 中的人物，放大到只显示上半身
 - 正方形
